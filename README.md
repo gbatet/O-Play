@@ -10,3 +10,6 @@ Python code for the O-Play program.
 3.1. If a cal file already exists, upload it via "Load Cal"
 4. Load GPX file
 5. LET'S GO AND ANALYSE!
+
+--------------------------------------
+This work is licensed under CC BY-NC-SA 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
