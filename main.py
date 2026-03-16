@@ -14,7 +14,12 @@ class OrienteeringAnalyser:
         self.root = root
         self.root.title("O-Play: Orienteering Analysis")
 
-        # Data & State
+        # Initial State Setup
+        self.reset_state()
+        self.setup_ui()
+
+    def reset_state(self):
+        """Resets all session-specific data for a clean workflow."""
         self.map_path = ""
         self.original_map = None
         self.display_photo = None
@@ -31,7 +36,18 @@ class OrienteeringAnalyser:
         self.split_counter = 1
         self.M = None
 
-        self.setup_ui()
+        # Reset UI elements if they exist
+        if hasattr(self, 'canvas'):
+            self.canvas.delete("all")
+        if hasattr(self, 'splits_list'):
+            self.splits_list.delete("1.0", tk.END)
+        if hasattr(self, 'time_label'):
+            self.time_label.config(text="00:00:00")
+        if hasattr(self, 'dist_label'):
+            self.dist_label.config(text="0.00 km")
+        if hasattr(self, 'slider'):
+            self.slider.set(0)
+            self.slider.config(to=100)
 
     def setup_ui(self):
         toolbar = tk.Frame(self.root, bg="#f0f0f0", bd=1, relief=tk.RAISED)
@@ -150,9 +166,7 @@ class OrienteeringAnalyser:
             with open(path, 'r', encoding="utf-8") as f:
                 data = json.load(f)
 
-            # Get the folder where the calibration file is located
             cal_dir = os.path.dirname(path)
-            # Combine it with the filename from the data
             map_filename = data["map_filename"]
             full_map_path = os.path.join(cal_dir, map_filename)
 
@@ -161,6 +175,8 @@ class OrienteeringAnalyser:
                                      f"Image file '{map_filename}' not found in the same folder as the calibration file.")
                 return
 
+            # Reset state before applying calibration, but keep the new path
+            self.reset_state()
             self.map_path = full_map_path
             self.original_map = Image.open(self.map_path)
             self.ref_coords = data["coords"]
@@ -171,9 +187,7 @@ class OrienteeringAnalyser:
             messagebox.showerror("Error", f"Failed to load: {e}")
 
     def info(self):
-        if not self.map_path or len(self.ref_pixels) < 3:
-            messagebox.showinfo("INFO", "1. First load a map image.\n2.0. If no calibration file exist, click on 3 points and set the coordinates. Save cal on *.txt file\n2.1. If calibration exist load cal file.\n3. Load GPX file to analyse\n ")
-            return None
+        messagebox.showinfo("INFO", "1. First load a map image.\n2.0. If no calibration file exist, click on 3 points and set the coordinates. Save cal on *.txt file\n2.1. If calibration exist load cal file.\n3. Load GPX file to analyse\n ")
 
     def save_calibration(self):
         if not self.map_path or len(self.ref_pixels) < 3:
@@ -193,6 +207,8 @@ class OrienteeringAnalyser:
     def load_map(self):
         path = filedialog.askopenfilename(filetypes=[("Image", ".jpg .jpeg .png")])
         if path:
+            # Trigger reset for a new workflow
+            self.reset_state()
             self.map_path = path
             self.original_map = Image.open(path)
             messagebox.showinfo("Calibrate", "Click on 3 points and set coordinates or Load calibration file")
@@ -229,14 +245,13 @@ class OrienteeringAnalyser:
         if coord_str:
             try:
                 lat, lon = map(float, coord_str.replace(",", " ").split())
-                self.ref_pixels.append([x, y]);
+                self.ref_pixels.append([x, y])
                 self.ref_coords.append([lat, lon])
                 self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="red")
                 if len(self.ref_pixels) == 3:
                     self.calculate_mapping()
                     messagebox.showinfo("Save calibration","Save calibration as a txt file *.txt")
                     self.save_calibration()
-
             except:
                 pass
 
@@ -303,7 +318,7 @@ class OrienteeringAnalyser:
                 self.slider.set(curr + 1)
                 self.root.after(self.speed_var.get(), self.play_loop)
             else:
-                self.is_playing = False;
+                self.is_playing = False
                 self.play_btn.config(text="Play")
 
 
