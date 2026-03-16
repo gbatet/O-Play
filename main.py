@@ -172,7 +172,7 @@ class OrienteeringAnalyser:
 
     def info(self):
         if not self.map_path or len(self.ref_pixels) < 3:
-            messagebox.showinfo("INFO", "1. First load a map image.\n2.0. If no calibration file exist, click on 3 points and set the coordinates. If needed save cal on *.txt file\n2.1. If calibration exist load cal file.\n3. Load GPX file to analyse\n ")
+            messagebox.showinfo("INFO", "1. First load a map image.\n2.0. If no calibration file exist, click on 3 points and set the coordinates. Save cal on *.txt file\n2.1. If calibration exist load cal file.\n3. Load GPX file to analyse\n ")
             return None
 
     def save_calibration(self):
@@ -195,6 +195,7 @@ class OrienteeringAnalyser:
         if path:
             self.map_path = path
             self.original_map = Image.open(path)
+            messagebox.showinfo("Calibrate", "Click on 3 points and set coordinates or Load calibration file")
             self.render_map()
 
     def render_map(self):
@@ -221,7 +222,8 @@ class OrienteeringAnalyser:
         self.M, _, _, _ = np.linalg.lstsq(src, dst, rcond=None)
 
     def on_map_click(self, event):
-        if len(self.ref_pixels) >= 3: return
+        if len(self.ref_pixels) >= 3:
+            return
         x, y = self.canvas.canvasx(event.x), self.canvas.canvasy(event.y)
         coord_str = simpledialog.askstring("Input", "Lat Lon (e.g. 45.1 7.2):")
         if coord_str:
@@ -230,7 +232,11 @@ class OrienteeringAnalyser:
                 self.ref_pixels.append([x, y]);
                 self.ref_coords.append([lat, lon])
                 self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="red")
-                if len(self.ref_pixels) == 3: self.calculate_mapping()
+                if len(self.ref_pixels) == 3:
+                    self.calculate_mapping()
+                    messagebox.showinfo("Save calibration","Save calibration as a txt file *.txt")
+                    self.save_calibration()
+
             except:
                 pass
 
