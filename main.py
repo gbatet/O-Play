@@ -191,7 +191,7 @@ class OrienteeringAnalyser:
                 json.dump(data, f)
 
     def load_map(self):
-        path = filedialog.askopenfilename()
+        path = filedialog.askopenfilename(filetypes=[("Image", ".jpg .jpeg .png")])
         if path:
             self.map_path = path
             self.original_map = Image.open(path)
